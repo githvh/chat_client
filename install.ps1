@@ -35,6 +35,9 @@ function Install-Python {
 $clientCode = @'
 import socket
 import sys
+if sys.stdout.encoding.lower() != 'utf-8':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 import os
 
 def clear_screen():
