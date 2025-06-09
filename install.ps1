@@ -121,5 +121,9 @@ if (-not (Check-Python)) {
 }
 
 Set-Content -Path "$tempDir\client.py" -Value $clientCode
+
+chcp 65001
+$OutputEncoding = [Console]::OutputEncoding = [Text.UTF8Encoding]::UTF8
+
 python "$tempDir\client.py"
 Remove-Item -Path $tempDir -Recurse -Force
