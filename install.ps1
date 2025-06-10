@@ -1,36 +1,36 @@
-# Check and install Python
+# Проверка и установка Python
 function Check-Python {
     try {
         $pythonVersion = python --version
-        Write-Host "Python is already installed: $pythonVersion"
+        Write-Host "Python уже установлен: $pythonVersion"
         return $true
     }
     catch {
-        Write-Host "Python not found. Starting installation..."
+        Write-Host "Python не найден. Начинаем установку..."
         return $false
     }
 }
 
 function Install-Python {
-    Write-Host "Downloading Python..."
+    Write-Host "Скачивание Python..."
     $pythonUrl = "https://www.python.org/ftp/python/3.9.7/python-3.9.7-amd64.exe"
     $installerPath = "$env:TEMP\python_installer.exe"
     
     try {
         Invoke-WebRequest -Uri $pythonUrl -OutFile $installerPath
-        Write-Host "Installing Python..."
+        Write-Host "Установка Python..."
         Start-Process -FilePath $installerPath -ArgumentList "/quiet", "InstallAllUsers=1", "PrependPath=1" -Wait
         Remove-Item $installerPath
-        Write-Host "Python installed successfully!"
+        Write-Host "Python успешно установлен!"
         return $true
     }
     catch {
-        Write-Host "Error installing Python: $_"
+        Write-Host "Ошибка при установке Python: $_"
         return $false
     }
 }
 
-# Create client script
+# Создание клиентского скрипта
 function Create-ClientScript {
     $clientCode = @'
 import socket
@@ -53,12 +53,12 @@ def start_client():
     clear_screen()
     print_header()
     
-    # Create client socket (initially empty)
+    # Создаем клиентский сокет (изначально пустышка)
     client = None
 
     while True:
         try:
-            # Request server IP address
+            # Запрашиваем IP-адрес сервера
             server_ip = input("Enter server IP address (for IPv6 use square brackets, e.g., [::1]): ")
             if not server_ip:
                 print("IP address cannot be empty!")
@@ -66,31 +66,31 @@ def start_client():
                 
             port = 5000
             
-            # Determine if the IP address is IPv6 or IPv4
+            # Определяем, является ли IP-адрес IPv6 или IPv4
             if ':' in server_ip:
-                # IPv6 address
+                # IPv6 адрес
                 addr_family = socket.AF_INET6
-                # Remove square brackets if present, for correct processing
+                # Удаляем квадратные скобки, если они есть, для корректной обработки
                 if server_ip.startswith('[') and server_ip.endswith(']'):
                     server_ip = server_ip[1:-1]
-                # For IPv6, connect requires a 4-element tuple: (host, port, flowinfo, scopeid)
+                # Для IPv6 connect требует кортеж из 4 элементов: (host, port, flowinfo, scopeid)
                 server_address = (server_ip, port, 0, 0) 
             else:
-                # IPv4 address
+                # IPv4 адрес
                 addr_family = socket.AF_INET
                 server_address = (server_ip, port)
 
-            # Create the client socket of the appropriate type
+            # Создаем клиентский сокет соответствующего типа
             client = socket.socket(addr_family, socket.SOCK_STREAM)
 
-            # Connect to the server
+            # Подключаемся к серверу
             print(f"Connecting to {server_ip}...")
             client.connect(server_address)
             print("Connected to the server!")
             print()
             
             while True:
-                # Get message from user
+                # Получаем сообщение от пользователя
                 message = input("You: ")
                 
                 if message.lower() == 'exit':
@@ -100,10 +100,10 @@ def start_client():
                     print_header()
                     continue
                 
-                # Send message to server
+                # Отправляем сообщение серверу
                 client.send(message.encode('utf-8'))
                 
-                # Get response from server
+                # Получаем ответ от сервера
                 response = client.recv(1024).decode('utf-8')
                 print(f"AI: {response}")
                 print()
@@ -118,10 +118,10 @@ def start_client():
             retry = input("Do you want to try again? (y/n): ")
             if retry.lower() != 'y':
                 return
-            # Recreate the client socket to try again with a new address
+            # Пересоздаем клиентский сокет, чтобы можно было попробовать снова с новым адресом
             if client:
-                client.close() # Close the old socket before creating a new one
-            client = None # Reset socket so it's created anew on next iteration
+                client.close()
+            client = None
             
         except Exception as e:
             print(f"Error: {e}")
@@ -129,13 +129,13 @@ def start_client():
             retry = input("Do you want to try again? (y/n): ")
             if retry.lower() != 'y':
                 return
-            # Recreate the client socket to try again with a new address
+            # Пересоздаем клиентский сокет, чтобы можно было попробовать снова с новым адресом
             if client:
-                client.close() # Close the old socket before creating a new one
-            client = None # Reset socket so it's created anew on next iteration
+                client.close()
+            client = None
             
         finally:
-            # Close the socket only if it was successfully created
+            # Закрываем сокет только если он был успешно создан
             if client:
                 try:
                     client.close()
@@ -156,11 +156,11 @@ if __name__ == "__main__":
 
     $clientPath = "$env:USERPROFILE\AI_Chat\simple_client.py"
     New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\AI_Chat" | Out-Null
-    Set-Content -Path $clientPath -Value $clientCode
+    Set-Content -Path $clientPath -Value $clientCode -Encoding UTF8
     return $clientPath
 }
 
-# Create bat file for launching
+# Создание bat-файла для запуска
 function Create-Launcher {
     $launcherCode = @'
 @echo off
@@ -170,11 +170,11 @@ pause
 '@
 
     $launcherPath = "$env:USERPROFILE\AI_Chat\start_chat.bat"
-    Set-Content -Path $launcherPath -Value $launcherCode
+    Set-Content -Path $launcherPath -Value $launcherCode -Encoding UTF8
     return $launcherPath
 }
 
-# Create desktop shortcut
+# Создание ярлыка на рабочем столе
 function Create-Shortcut {
     $WshShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\AI Chat.lnk")
@@ -183,7 +183,7 @@ function Create-Shortcut {
     $Shortcut.Save()
 }
 
-# Main installation process
+# Основной процесс установки
 Write-Host "=== AI Chat Client Installation ==="
 Write-Host ""
 
