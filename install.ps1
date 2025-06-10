@@ -1,36 +1,36 @@
-# Проверка и установка Python
+# Check and install Python
 function Check-Python {
     try {
         $pythonVersion = python --version
-        Write-Host "Python уже установлен: $pythonVersion"
+        Write-Host "Python is already installed: $pythonVersion"
         return $true
     }
     catch {
-        Write-Host "Python не найден. Начинаем установку..."
+        Write-Host "Python not found. Starting installation..."
         return $false
     }
 }
 
 function Install-Python {
-    Write-Host "Скачивание Python..."
+    Write-Host "Downloading Python..."
     $pythonUrl = "https://www.python.org/ftp/python/3.9.7/python-3.9.7-amd64.exe"
     $installerPath = "$env:TEMP\python_installer.exe"
     
     try {
         Invoke-WebRequest -Uri $pythonUrl -OutFile $installerPath
-        Write-Host "Установка Python..."
+        Write-Host "Installing Python..."
         Start-Process -FilePath $installerPath -ArgumentList "/quiet", "InstallAllUsers=1", "PrependPath=1" -Wait
         Remove-Item $installerPath
-        Write-Host "Python успешно установлен!"
+        Write-Host "Python installed successfully!"
         return $true
     }
     catch {
-        Write-Host "Ошибка при установке Python: $_"
+        Write-Host "Error installing Python: $_"
         return $false
     }
 }
 
-# Создание клиентского скрипта
+# Create client script
 function Create-ClientScript {
     $clientCode = @'
 import socket
@@ -42,10 +42,10 @@ def clear_screen():
 
 def print_header():
     print("=" * 50)
-    print("           ПРОСТОЙ AI ЧАТ КЛИЕНТ")
+    print("             SIMPLE AI CHAT CLIENT")
     print("=" * 50)
-    print("Для выхода введите 'exit'")
-    print("Для очистки экрана введите 'clear'")
+    print("Enter 'exit' to quit")
+    print("Enter 'clear' to clear screen")
     print("=" * 50)
     print()
 
@@ -53,45 +53,45 @@ def start_client():
     clear_screen()
     print_header()
     
-    # Создаем клиентский сокет (изначально пустышка)
+    # Create client socket (initially empty)
     client = None
 
     while True:
         try:
-            # Запрашиваем IP-адрес сервера
-            server_ip = input("Введите IP-адрес сервера (для IPv6 используйте квадратные скобки, например: [::1]): ")
+            # Request server IP address
+            server_ip = input("Enter server IP address (for IPv6 use square brackets, e.g., [::1]): ")
             if not server_ip:
-                print("IP-адрес не может быть пустым!")
+                print("IP address cannot be empty!")
                 continue
                 
             port = 5000
             
-            # Определяем, является ли IP-адрес IPv6 или IPv4
+            # Determine if the IP address is IPv6 or IPv4
             if ':' in server_ip:
-                # IPv6 адрес
+                # IPv6 address
                 addr_family = socket.AF_INET6
-                # Удаляем квадратные скобки, если они есть, для корректной обработки
+                # Remove square brackets if present, for correct processing
                 if server_ip.startswith('[') and server_ip.endswith(']'):
                     server_ip = server_ip[1:-1]
-                # Для IPv6 connect требует кортеж из 4 элементов: (host, port, flowinfo, scopeid)
+                # For IPv6, connect requires a 4-element tuple: (host, port, flowinfo, scopeid)
                 server_address = (server_ip, port, 0, 0) 
             else:
-                # IPv4 адрес
+                # IPv4 address
                 addr_family = socket.AF_INET
                 server_address = (server_ip, port)
 
-            # Создаем клиентский сокет соответствующего типа
+            # Create the client socket of the appropriate type
             client = socket.socket(addr_family, socket.SOCK_STREAM)
 
-            # Подключаемся к серверу
-            print(f"Подключение к {server_ip}...")
+            # Connect to the server
+            print(f"Connecting to {server_ip}...")
             client.connect(server_address)
-            print("Подключено к серверу!")
+            print("Connected to the server!")
             print()
             
             while True:
-                # Получаем сообщение от пользователя
-                message = input("Вы: ")
+                # Get message from user
+                message = input("You: ")
                 
                 if message.lower() == 'exit':
                     return
@@ -100,42 +100,42 @@ def start_client():
                     print_header()
                     continue
                 
-                # Отправляем сообщение серверу
+                # Send message to server
                 client.send(message.encode('utf-8'))
                 
-                # Получаем ответ от сервера
+                # Get response from server
                 response = client.recv(1024).decode('utf-8')
                 print(f"AI: {response}")
                 print()
                 
         except ConnectionRefusedError:
-            print("Не удалось подключиться к серверу.")
-            print("Проверьте:")
-            print("1. Правильность IP-адреса")
-            print("2. Запущен ли сервер")
-            print("3. Открыты ли нужные порты") # Обновлено сообщение
+            print("Could not connect to the server.")
+            print("Check:")
+            print("1. Correct IP address")
+            print("2. If the server is running")
+            print("3. If necessary ports are open")
             print()
-            retry = input("Хотите попробовать снова? (y/n): ")
+            retry = input("Do you want to try again? (y/n): ")
             if retry.lower() != 'y':
                 return
-            # Пересоздаем клиентский сокет, чтобы можно было попробовать снова с новым адресом
+            # Recreate the client socket to try again with a new address
             if client:
-                client.close() # Закрываем старый сокет перед созданием нового
-            client = None # Сбросим сокет, чтобы он был создан заново при следующей итерации
+                client.close() # Close the old socket before creating a new one
+            client = None # Reset socket so it's created anew on next iteration
             
         except Exception as e:
-            print(f"Ошибка: {e}")
+            print(f"Error: {e}")
             print()
-            retry = input("Хотите попробовать снова? (y/n): ")
+            retry = input("Do you want to try again? (y/n): ")
             if retry.lower() != 'y':
                 return
-            # Пересоздаем клиентский сокет, чтобы можно было попробовать снова с новым адресом
+            # Recreate the client socket to try again with a new address
             if client:
-                client.close() # Закрываем старый сокет перед созданием нового
-            client = None # Сбросим сокет, чтобы он был создан заново при следующей итерации
+                client.close() # Close the old socket before creating a new one
+            client = None # Reset socket so it's created anew on next iteration
             
         finally:
-            # Закрываем сокет только если он был успешно создан
+            # Close the socket only if it was successfully created
             if client:
                 try:
                     client.close()
@@ -146,12 +146,12 @@ if __name__ == "__main__":
     try:
         start_client()
     except KeyboardInterrupt:
-        print("\nПрограмма завершена")
+        print("\nProgram terminated")
     except Exception as e:
-        print(f"\nНеожиданная ошибка: {e}")
+        print(f"\nUnexpected error: {e}")
     finally:
-        print("\nДо свидания!")
-        input("Нажмите Enter для выхода...")
+        print("\nGoodbye!")
+        input("Press Enter to exit...")
 '@
 
     $clientPath = "$env:USERPROFILE\AI_Chat\simple_client.py"
@@ -160,11 +160,11 @@ if __name__ == "__main__":
     return $clientPath
 }
 
-# Создание bat-файла для запуска
+# Create bat file for launching
 function Create-Launcher {
     $launcherCode = @'
 @echo off
-echo Запуск AI чат-клиента...
+echo Launching AI chat client...
 python "%~dp0simple_client.py"
 pause
 '@
@@ -174,7 +174,7 @@ pause
     return $launcherPath
 }
 
-# Создание ярлыка на рабочем столе
+# Create desktop shortcut
 function Create-Shortcut {
     $WshShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\AI Chat.lnk")
@@ -183,34 +183,34 @@ function Create-Shortcut {
     $Shortcut.Save()
 }
 
-# Основной процесс установки
-Write-Host "=== Установка AI Чат-клиента ==="
+# Main installation process
+Write-Host "=== AI Chat Client Installation ==="
 Write-Host ""
 
 if (-not (Check-Python)) {
     if (-not (Install-Python)) {
-        Write-Host "Ошибка: Не удалось установить Python. Установка прервана."
+        Write-Host "Error: Could not install Python. Installation aborted."
         exit
     }
 }
 
-Write-Host "Создание клиентского скрипта..."
+Write-Host "Creating client script..."
 $clientPath = Create-ClientScript
 
-Write-Host "Создание файла запуска..."
+Write-Host "Creating launch file..."
 $launcherPath = Create-Launcher
 
-Write-Host "Создание ярлыка на рабочем столе..."
+Write-Host "Creating desktop shortcut..."
 Create-Shortcut
 
 Write-Host ""
-Write-Host "=== Установка завершена! ==="
-Write-Host "Клиент установлен в: $env:USERPROFILE\AI_Chat"
-Write-Host "Ярлык создан на рабочем столе"
+Write-Host "=== Installation Complete! ==="
+Write-Host "Client installed to: $env:USERPROFILE\AI_Chat"
+Write-Host "Shortcut created on desktop"
 Write-Host ""
-Write-Host "Для запуска клиента:"
-Write-Host "1. Дважды кликните на ярлык 'AI Chat' на рабочем столе"
-Write-Host "2. Или запустите файл: $launcherPath"
+Write-Host "To launch the client:"
+Write-Host "1. Double-click the 'AI Chat' shortcut on the desktop"
+Write-Host "2. Or run the file: $launcherPath"
 Write-Host ""
-Write-Host "Нажмите любую клавишу для выхода..."
+Write-Host "Press any key to exit..."
 $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") 
